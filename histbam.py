@@ -29,11 +29,11 @@ def findMaxRange(filename):
     maxlen = 1
     fle = open(filename)
     while line:=fle.readline():
-        if line[0:2] == "SN":
-            if line.split("\t")[1] == "maximum length:":
-                maxlen = int(line.split("\t")[2])
-                break
+        # if line[0:2] == "SN":
+        if int(line.split(" ")[0]) > maxlen:
+            maxlen = int(line.split(" ")[0])
     fle.close()
+    print(f"max: {maxlen}")
     return maxlen
 
 
@@ -44,14 +44,19 @@ def createBuckets(filename, bins, bucketLength):
     buckets = [0] * bucketSize 
     ranges = []
     fle = open(filename)
+    lcounter = 0
+    totalAm = 0
     while line:=fle.readline():
-        if line[0:2] == "RL":
-            rlength = int(line.split("\t")[1])
-            ramount = int(line.split("\t")[2])
-            buckets[int((rlength) // bucketLength)] += ramount
+        # if line[0:2] == "RL":
+        rlength = int(line.split(" ")[0])
+        ramount = int(line.split(" ")[1])
+        totalAm += int(line.split(" ")[0]) * int(line.split(" ")[1])
+        lcounter += int(line.split(" ")[1])
+        buckets[int((rlength) // bucketLength)] += ramount
     fle.close()
+    print(f"avg: {totalAm / lcounter}")
     for i in range(bucketSize):
-        ranges.append(i*bucketLength)
+        ranges.append(i * bucketLength)
     return buckets, ranges
 
 
@@ -67,6 +72,8 @@ def parseConfig():
                         help="Supply bin-width (by default widths are calculated based on size-range)")
     parser.add_argument("-l", "--log", action="store_true",
                         help="Draw x-axis logarithmically.")
+    parser.add_argument("-t", "--title", action="store", nargs=1, type=str, default=[""],
+                        help="add title to graph")
     parser.add_argument("file")
     args = parser.parse_args()
     return args
@@ -81,6 +88,8 @@ plt.ylabel("amount of reads")
 plt.yscale("log")
 if (args.log):
     plt.xscale("log")
+if args.title[0]:
+    plt.title(args.title[0])
 
 now = datetime.now()
 filename =  args.file.split("/")[-1]
